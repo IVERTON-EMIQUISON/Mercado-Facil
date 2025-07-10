@@ -1,15 +1,43 @@
 import React from 'react';
 
 function Carrinho({ carrinho, onRemoverDoCarrinho, onLimparCarrinho }) {
+  const [mensagemCompra, setMensagemCompra] = React.useState('');
   const total = carrinho.reduce((sum, item) => {
     const itemPreco = parseFloat(item.preco) || 0;
     const itemQuantidade = parseInt(item.quantidade) || 0;
     return sum + (itemPreco * itemQuantidade);
   }, 0);
+  const handleFinalizarCompra = () => {
+    setMensagemCompra('✅ Compra finalizada com sucesso!');
+    setTimeout(() => {
+      setMensagemCompra('');
+      onLimparCarrinho();
+    }, 3000);
+  };
 
   return (
+    
     <div style={styles.container}>
       <h2 style={styles.titulo}>🛒 Seu Carrinho de Compras</h2>
+      {mensagemCompra && (
+      <div style={{
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        backgroundColor: '#d1e7dd',
+        color: '#0f5132',
+        padding: '20px 30px',
+        borderRadius: '10px',
+        border: '1px solid #badbcc',
+        zIndex: 9999,
+        fontSize: '18px',
+        boxShadow: '0 0 10px rgba(0,0,0,0.2)',
+        textAlign: 'center'
+      }}>
+        {mensagemCompra}
+      </div>
+    )}
 
       {carrinho.length === 0 ? (
         <p style={styles.vazio}>Seu carrinho está vazio.</p>
@@ -48,11 +76,12 @@ function Carrinho({ carrinho, onRemoverDoCarrinho, onLimparCarrinho }) {
 
           <div style={styles.acoes}>
             <button onClick={onLimparCarrinho} style={styles.btnLimpar}>🧹 Limpar Carrinho</button>
-            <button style={styles.btnFinalizar}>✅ Finalizar Compra</button>
+            <button onClick={handleFinalizarCompra} style={styles.btnFinalizar}> ✅ Finalizar Compra </button>
           </div>
         </>
       )}
     </div>
+    
   );
 }
 

@@ -1,4 +1,3 @@
-
 // src/pages/AdminProdutos.jsx
 import React, { useState, useEffect } from 'react';
 import { mockProdutos } from '../data'; // Usaremos para inicializar e simular operações
@@ -61,60 +60,69 @@ function AdminProdutos() {
     setMessage('');
 
     try {
-      let response;
-      let url = `${API_BASE_URL}/products`;
-      let method = 'POST';
-      let successMessage = 'Produto adicionado com sucesso!';
-
       if (editandoProduto) {
-        url = `${API_BASE_URL}/products/${editandoProduto.id}`;
-        method = 'PUT';
-        successMessage = 'Produto atualizado com sucesso!';
-      }
+        // === ATUALIZAR PRODUTO EXISTENTE ===
+        const id = editandoProduto.id;
+        const produtoPayload = {
+          nome: novoProduto.nome,
+          descricao: novoProduto.descricao,
+          preco: parseFloat(novoProduto.preco) || 0,
+          categoria: novoProduto.categoria,
+          estoque: parseInt(novoProduto.estoque) || 0,
+          imageUrl: novoProduto.imageUrl,
+        };
 
-      // Garantir que valores numéricos estejam corretos
-      const produtoPayload = {
-        ...novoProduto,
-        preco: isNaN(parseFloat(novoProduto.preco)) ? 0 : parseFloat(novoProduto.preco),
-        estoque: isNaN(parseInt(novoProduto.estoque)) ? 0 : parseInt(novoProduto.estoque),
-      };
+        const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(produtoPayload),
+        });
 
-      response = await fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(produtoPayload)
-      });
+        if (!response.ok) {
+          const erroData = await response.json();
+          throw new Error(erroData.message || `Erro HTTP: ${response.status}`);
+        }
 
-      if (!response.ok) {
-        let errorMessage = `Erro HTTP: ${response.status}`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch (_) { /* erro ao parsear json */ }
-        throw new Error(errorMessage);
-      }
+        const result = await response.json();
+        console.log("Atualização bem-sucedida:", result);
 
-      const result = await response.json();
-      console.log("API Response:", result);
-
-      if (editandoProduto) {
-        // Atualiza produto no estado
-        setProdutos(produtos.map(p =>
-          p.id === editandoProduto.id ? { ...produtoPayload, id: editandoProduto.id } : p
-        ));
+        setProdutos(produtos.map(p => p.id === id ? { ...p, ...produtoPayload } : p));
+        setMessage('✅ Produto atualizado com sucesso!');
         setEditandoProduto(null);
       } else {
-        // Usa o ID retornado pela API (assumindo que vem como result.productId ou produto completo)
+        // === ADICIONAR NOVO PRODUTO ===
+        const produtoPayload = {
+          nome: novoProduto.nome,
+          descricao: novoProduto.descricao,
+          preco: parseFloat(novoProduto.preco) || 0,
+          categoria: novoProduto.categoria,
+          estoque: parseInt(novoProduto.estoque) || 0,
+          imageUrl: novoProduto.imageUrl,
+        };
+
+        const response = await fetch(`${API_BASE_URL}/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(produtoPayload),
+        });
+
+        if (!response.ok) {
+          const erroData = await response.json();
+          throw new Error(erroData.message || `Erro HTTP: ${response.status}`);
+        }
+
+        const result = await response.json();
         const novo = {
           ...produtoPayload,
-          id: result.productId || result.id || result.idProduto || crypto.randomUUID() // fallback seguro
+          id: result.productId || crypto.randomUUID(),
         };
+
         setProdutos([...produtos, novo]);
+        setMessage('✅ Produto adicionado com sucesso!');
       }
 
-      setMessage(successMessage);
+      // Resetar campos após operação
       setNovoProduto({ id: '', nome: '', descricao: '', preco: 0, categoria: '', estoque: 0, imageUrl: '' });
-
     } catch (err) {
       console.error("Erro ao salvar produto:", err);
       setError(`Erro ao salvar produto: ${err.message}`);
@@ -122,7 +130,6 @@ function AdminProdutos() {
       setLoading(false);
     }
   };
-
 
   const handleEdit = (produto) => {
     setEditandoProduto(produto);
@@ -132,7 +139,7 @@ function AdminProdutos() {
 
   const handleDelete = async (id) => {
     // Substitua window.confirm por um modal customizado em um ambiente de produção
-   const resultado = await Swal.fire({
+  const resultado = await Swal.fire({
     title: 'Tem certeza?',
     text: 'Você não poderá desfazer isso!',
     icon: 'warning',
@@ -163,7 +170,7 @@ function AdminProdutos() {
 
       // SIMULAÇÃO: Remove do estado local e localStorage
       setProdutos(produtos.filter(p => p.id !== id));
-      setMessage('Produto excluído com sucesso!');
+      setMessage('✅ Produto excluído com sucesso!');
     } catch (err) {
       console.error("Erro ao excluir produto:", err);
       setError(`Erro ao excluir produto: ${err.message}`);
@@ -171,6 +178,28 @@ function AdminProdutos() {
       setLoading(false);
     }
   };
+  const handleUploadImagem = async (file) => {
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const base64 = reader.result.split(',')[1]; // remove 'data:image/png;base64,...'
+
+    const response = await fetch('https://4gqf3khn5m.execute-api.us-east-1.amazonaws.com/v1/products   ', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        base64Image: base64,
+        filename: file.name,
+        contentType: file.type,
+      })
+    });
+
+    const data = await response.json();
+    console.log("URL da imagem:", data.imageUrl);
+    setNovoProduto(prev => ({ ...prev, imageUrl: data.imageUrl }));
+  };
+
+  reader.readAsDataURL(file);
+};
 
   return (
     <div className="container">

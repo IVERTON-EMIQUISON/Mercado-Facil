@@ -30,6 +30,7 @@ function App() {
   useEffect(() => {
     localStorage.setItem('carrinho', JSON.stringify(carrinho));
   }, [carrinho]);
+  const [mensagemSucesso, setMensagemSucesso] = useState('');
 
   const handleAdicionarAoCarrinho = (produto) => {
     setCarrinho(prevCarrinho => {
@@ -42,7 +43,9 @@ function App() {
         return [...prevCarrinho, { ...produto, quantidade: 1 }];
       }
     });
-    
+    // Mostra mensagem de sucesso temporária
+    setMensagemSucesso(`✅ ${produto.nome} adicionado com sucesso!`);
+    setTimeout(() => setMensagemSucesso(''), 3000);
   };
 
   const handleRemoverDoCarrinho = (id) => {
@@ -66,8 +69,26 @@ function App() {
 
   return (
     <Router>
-      
       <Header isLoggedIn={isLoggedIn} onLogout={handleLogout} />
+      {mensagemSucesso && (
+      <div style={{ 
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        backgroundColor: '#d1e7dd',
+        color: '#0f5132',
+        padding: '20px 30px',
+        borderRadius: '10px',
+        border: '1px solid #badbcc',
+        zIndex: 9999,
+        fontSize: '18px',
+        boxShadow: '0 0 10px rgba(0,0,0,0.2)',
+        textAlign: 'center'
+      }}>
+        {mensagemSucesso}
+      </div>
+       )}
       <Routes>
         <Route path="/" element={<Home onAdicionarAoCarrinho={handleAdicionarAoCarrinho} />} />
         <Route path="/produto/:id" element={<DetalhesProduto onAdicionarAoCarrinho={handleAdicionarAoCarrinho} />} />
