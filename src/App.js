@@ -12,9 +12,13 @@ import Dashboard from './pages/Dashboard';
 import Register from './pages/Register';
 import './index.css'; // Importe seu arquivo CSS
 import './dashboard.css'; // Importe o CSS do Dashboard
+import { useLocation } from 'react-router-dom';
 
 // src/App.jsx
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const esconderHeader = location.pathname === '/dashboard';
+
   const [carrinho, setCarrinho] = useState(() => {
     // Carrega o carrinho do localStorage ao iniciar
     const savedCart = localStorage.getItem('carrinho');
@@ -65,46 +69,58 @@ function App() {
     setIsLoggedIn(false);
     // Redireciona para a página inicial ou de login após o logout
     window.location.href = '/login'; // Força um refresh para limpar o estado
-  };
+    };
 
   return (
+      <>
+        {!esconderHeader && (
+          <>
+            <Header isLoggedIn={isLoggedIn} onLogout={handleLogout} />
+            {mensagemSucesso && (
+              <div style={{
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                backgroundColor: '#d1e7dd',
+                color: '#0f5132',
+                padding: '20px 30px',
+                borderRadius: '10px',
+                border: '1px solid #badbcc',
+                zIndex: 9999,
+                fontSize: '18px',
+                boxShadow: '0 0 10px rgba(0,0,0,0.2)',
+                textAlign: 'center'
+              }}>
+                {mensagemSucesso}
+              </div>
+            )}
+          </>
+        )}
+
+        <Routes>
+          <Route path="/" element={<Home onAdicionarAoCarrinho={handleAdicionarAoCarrinho} />} />
+          <Route path="/produto/:id" element={<DetalhesProduto onAdicionarAoCarrinho={handleAdicionarAoCarrinho} />} />
+          <Route path="/carrinho" element={<Carrinho carrinho={carrinho} onRemoverDoCarrinho={handleRemoverDoCarrinho} onLimparCarrinho={handleLimparCarrinho} />} />
+          <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+          <Route path="/register" element={<Register />} />
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/admin" element={<AdminProdutos />} />
+            <Route path="/compras" element={<div className="container"><h2>Página de Compras (Em Breve)</h2></div>} />
+            <Route path="/fornecedores" element={<div className="container"><h2>Página de Fornecedores (Em Breve)</h2></div>} />
+          </Route>
+        </Routes>
+      </>
+    );
+  }
+
+
+function App() {
+  return (
     <Router>
-      <Header isLoggedIn={isLoggedIn} onLogout={handleLogout} />
-      {mensagemSucesso && (
-      <div style={{ 
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        backgroundColor: '#d1e7dd',
-        color: '#0f5132',
-        padding: '20px 30px',
-        borderRadius: '10px',
-        border: '1px solid #badbcc',
-        zIndex: 9999,
-        fontSize: '18px',
-        boxShadow: '0 0 10px rgba(0,0,0,0.2)',
-        textAlign: 'center'
-      }}>
-        {mensagemSucesso}
-      </div>
-       )}
-      <Routes>
-        <Route path="/" element={<Home onAdicionarAoCarrinho={handleAdicionarAoCarrinho} />} />
-        <Route path="/produto/:id" element={<DetalhesProduto onAdicionarAoCarrinho={handleAdicionarAoCarrinho} />} />
-        <Route path="/carrinho" element={<Carrinho carrinho={carrinho} onRemoverDoCarrinho={handleRemoverDoCarrinho} onLimparCarrinho={handleLimparCarrinho} />} />
-        <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-        <Route path="/register" element={<Register />} /> {/* Nova rota para Registro */}
-        
-        {/* Rotas Protegidas */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} /> {/* Nova rota para o Dashboard */}
-          <Route path="/admin" element={<AdminProdutos />} />
-          {/* Rotas placeholder para Compras e Fornecedores */}
-          <Route path="/compras" element={<div className="container"><h2>Página de Compras (Em Breve)</h2><p>Esta área será desenvolvida para gerenciar suas compras.</p></div>} />
-          <Route path="/fornecedores" element={<div className="container"><h2>Página de Fornecedores (Em Breve)</h2><p>Esta área será desenvolvida para gerenciar seus fornecedores.</p></div>} />
-        </Route>
-      </Routes>
+      <AppContent />
     </Router>
   );
 }

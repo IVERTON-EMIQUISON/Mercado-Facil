@@ -14,7 +14,13 @@ function ProdutoCard({ produto, onAdicionarAoCarrinho }) {
       </Link>
       <p>{(produto.descricao || '').toString().substring(0, 70)}...</p>
       <p className="price">R$ {produto.preco?.toFixed(2)}</p>
-      <button onClick={() => onAdicionarAoCarrinho(produto)}>Adicionar ao Carrinho</button>
+      <button
+        disabled={produto.estoque <= 0}
+       onClick={() => onAdicionarAoCarrinho(produto)}
+
+      >
+        {produto.estoque <= 0 ? 'Indisponível' : 'Adicionar ao Carrinho'}
+      </button>
     </div>
   );
 }

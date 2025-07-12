@@ -178,28 +178,6 @@ function AdminProdutos() {
       setLoading(false);
     }
   };
-  const handleUploadImagem = async (file) => {
-  const reader = new FileReader();
-  reader.onloadend = async () => {
-    const base64 = reader.result.split(',')[1]; // remove 'data:image/png;base64,...'
-
-    const response = await fetch('https://4gqf3khn5m.execute-api.us-east-1.amazonaws.com/v1/products   ', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        base64Image: base64,
-        filename: file.name,
-        contentType: file.type,
-      })
-    });
-
-    const data = await response.json();
-    console.log("URL da imagem:", data.imageUrl);
-    setNovoProduto(prev => ({ ...prev, imageUrl: data.imageUrl }));
-  };
-
-  reader.readAsDataURL(file);
-};
 
   return (
     <div className="container">
@@ -211,33 +189,71 @@ function AdminProdutos() {
 
       <div className="admin-form">
         <h3>{editandoProduto ? 'Editar Produto' : 'Adicionar Novo Produto'}</h3>
-        <form onSubmit={handleAddOrUpdate}>
-          <label>Nome:</label>
-          <input type="text" name="nome" value={novoProduto.nome} onChange={handleChange} required />
-          <label>Descrição:</label>
-          <textarea name="descricao" value={novoProduto.descricao} onChange={handleChange} required></textarea>
-          <label>Preço:</label>
-          <input type="number" name="preco" value={novoProduto.preco} onChange={handleChange} step="0.01" required />
-          <label>Categoria:</label>
-          <input type="text" name="categoria" value={novoProduto.categoria} onChange={handleChange} required />
-          <label>Estoque:</label>
-          <input type="number" name="estoque" value={novoProduto.estoque} onChange={handleChange} required />
-          <label>URL da Imagem:</label>
-          <input type="text" name="imageUrl" value={novoProduto.imageUrl} onChange={handleChange} />
-          <button type="submit" disabled={loading}>{editandoProduto ? 'Atualizar Produto' : 'Adicionar Produto'}</button>
-          {editandoProduto && (
-            <button type="button" onClick={() => { setEditandoProduto(null); setNovoProduto({ id: '', nome: '', descricao: '', preco: 0, categoria: '', estoque: 0, imageUrl: '' }); setMessage(''); }} style={{backgroundColor: '#6c757d', marginLeft: '10px'}} disabled={loading}>Cancelar Edição</button>
-          )}
-        </form>
+       <form onSubmit={handleAddOrUpdate}>
+        <label>Nome:</label>
+        <input type="text" name="nome" value={novoProduto.nome} onChange={handleChange} required />
+        
+        <label>Descrição:</label>
+        <textarea name="descricao" value={novoProduto.descricao} onChange={handleChange} required></textarea>
+        
+        <label>Preço:</label>
+        <input type="number" name="preco" value={novoProduto.preco} onChange={handleChange} step="0.01" required />
+        
+        <label>Categoria:</label>
+        <input type="text" name="categoria" value={novoProduto.categoria} onChange={handleChange} required />
+        
+        <label>Estoque:</label>
+        <input type="number" name="estoque" value={novoProduto.estoque} onChange={handleChange} required />
+        
+        <label>URL da Imagem:</label>
+        <input type="text" name="imageUrl" value={novoProduto.imageUrl} onChange={handleChange} />
+
+        <button type="submit" disabled={loading}>
+          {editandoProduto ? 'Atualizar Produto' : 'Adicionar Produto'}
+        </button>
+
+        {editandoProduto && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditandoProduto(null);
+              setNovoProduto({ id: '', nome: '', descricao: '', preco: 0, categoria: '', estoque: 0, imageUrl: '' });
+              setMessage('');
+            }}
+            style={{ backgroundColor: '#6c757d', marginLeft: '10px' }}
+            disabled={loading}
+          >
+            Cancelar Edição
+          </button>
+        )}
+
+        {novoProduto.imageUrl && (
+          <div style={{ marginTop: '1rem' }}>
+            <p>Pré-visualização da imagem:</p>
+            <img
+              src={novoProduto.imageUrl}
+              alt="Imagem do produto"
+              style={{
+                maxWidth: '200px',
+                border: '1px solid #ccc',
+                padding: '5px',
+                borderRadius: '4px',
+              }}
+            />
+          </div>
+        )}
+      </form>
+
       </div>
 
       <div className="admin-table">
         <h3>Lista de Produtos</h3>
+        <div className="table-container">
         <table>
           <thead>
             <tr>
               <th>Nome</th>
-              <th>Descrição</th>
+              <th className="descricao">Descrição</th>
               <th>Preço</th>
               <th>Estoque</th>
               <th>Ações</th>
@@ -247,7 +263,9 @@ function AdminProdutos() {
             {produtos.map(produto => (
               <tr key={produto.id}>
                 <td>{produto.nome}</td>
-                <td>{produto.descricao}</td>
+                <td className="descricao">
+                  {produto.descricao}
+                </td>
                 <td>R${Number(produto.preco || 0).toFixed(2)}</td>
                 <td>{produto.estoque}</td>
                 <td>
@@ -258,6 +276,7 @@ function AdminProdutos() {
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );
