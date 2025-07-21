@@ -1,43 +1,36 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // Importa useNavigate para navegação
+import Swal from 'sweetalert2'; // Importa SweetAlert2 para diálogos
 
 function Carrinho({ carrinho, onRemoverDoCarrinho, onLimparCarrinho }) {
-  const [mensagemCompra, setMensagemCompra] = React.useState('');
+  // Removido 'mensagemCompra' e seu estado, pois a navegação para a página de pagamento lidará com o fluxo
+  const navigate = useNavigate(); // Hook para navegação programática
+
   const total = carrinho.reduce((sum, item) => {
     const itemPreco = parseFloat(item.preco) || 0;
     const itemQuantidade = parseInt(item.quantidade) || 0;
     return sum + (itemPreco * itemQuantidade);
   }, 0);
+
   const handleFinalizarCompra = () => {
-    setMensagemCompra('✅ Compra finalizada com sucesso!');
-    setTimeout(() => {
-      setMensagemCompra('');
-      onLimparCarrinho();
-    }, 3000);
+    if (carrinho.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Carrinho Vazio',
+        text: 'Adicione produtos ao carrinho antes de finalizar a compra.',
+      });
+      return; // Interrompe a função se o carrinho estiver vazio
+    }
+
+    // Navega para a página de pagamento, passando o carrinho e o total via state.
+    // A página de pagamento (Pagamento.jsx) usará useLocation().state para acessar esses dados.
+    navigate('/pagamento', { state: { carrinho, total } });
   };
 
   return (
-    
     <div style={styles.container}>
       <h2 style={styles.titulo}>🛒 Seu Carrinho de Compras</h2>
-      {mensagemCompra && (
-      <div style={{
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        backgroundColor: '#d1e7dd',
-        color: '#0f5132',
-        padding: '20px 30px',
-        borderRadius: '10px',
-        border: '1px solid #badbcc',
-        zIndex: 9999,
-        fontSize: '18px',
-        boxShadow: '0 0 10px rgba(0,0,0,0.2)',
-        textAlign: 'center'
-      }}>
-        {mensagemCompra}
-      </div>
-    )}
+      {/* Mensagem de compra removida, pois o fluxo agora vai para a página de pagamento */}
 
       {carrinho.length === 0 ? (
         <p style={styles.vazio}>Seu carrinho está vazio.</p>
@@ -53,7 +46,7 @@ function Carrinho({ carrinho, onRemoverDoCarrinho, onLimparCarrinho }) {
                 <div style={styles.imagemContainer}>
                   {item.imageUrl ? (
                     <img src={item.imageUrl} alt={item.nome} style={styles.imagem} />
-                  ) : item.imagem ? (
+                  ) : item.imagem ? ( // Mantido para compatibilidade, mas imageUrl é preferível
                     <img src={item.imagem} alt={item.nome} style={styles.imagem} />
                   ) : (
                     <div style={styles.semImagem}>Sem imagem</div>
@@ -81,7 +74,6 @@ function Carrinho({ carrinho, onRemoverDoCarrinho, onLimparCarrinho }) {
         </>
       )}
     </div>
-    
   );
 }
 

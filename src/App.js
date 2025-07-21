@@ -9,9 +9,10 @@ import Carrinho from './pages/Carrinho';
 import AdminProdutos from './pages/AdminProdutos';
 import Login from './pages/login';
 import Dashboard from './pages/Dashboard'; 
-import Register from './pages/Register';
+
 import './index.css'; // Importe seu arquivo CSS
 import './dashboard.css'; // Importe o CSS do Dashboard
+import Pagamento from './pages/Pagamento';
 import { useLocation } from 'react-router-dom';
 
 // src/App.jsx
@@ -103,7 +104,7 @@ function AppContent() {
           <Route path="/produto/:id" element={<DetalhesProduto onAdicionarAoCarrinho={handleAdicionarAoCarrinho} />} />
           <Route path="/carrinho" element={<Carrinho carrinho={carrinho} onRemoverDoCarrinho={handleRemoverDoCarrinho} onLimparCarrinho={handleLimparCarrinho} />} />
           <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/pagamento" element={<Pagamento/>} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />

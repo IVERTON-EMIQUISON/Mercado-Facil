@@ -67,9 +67,7 @@ function Login({ onLoginSuccess }) {
           <button type="submit">Entrar</button>
           {message && <p className="message">{message}</p>}
         </form>
-        <p style={{ marginTop: '20px' }}>
-          Não tem uma conta? <Link to="/register" style={{ color: '#007BFF', textDecoration: 'none' }}>Registre-se aqui</Link>
-        </p>
+       
       </div>
     </div>
   );

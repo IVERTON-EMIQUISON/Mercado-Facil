@@ -22,7 +22,6 @@ function Header({ isLoggedIn, onLogout }) {
         ) : (
           <>
             <Link to="/login">Login</Link>
-            <Link to="/register">Registrar</Link> {/* Adicionado link para Registro */}
           </>
         )}
       </nav>
