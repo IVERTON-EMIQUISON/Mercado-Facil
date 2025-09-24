@@ -3,11 +3,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2'; // Para mensagens de sucesso/erro
 import { QRCodeCanvas } from 'qrcode.react'; // Biblioteca para gerar QR Code
 
-function Pagamento() {
+function Pagamento({ onLimparCarrinho }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { carrinho, total } = location.state || { carrinho: [], total: 0 }; // Recebe dados do carrinho
-  
+  const API_BASE_URL = 'https://4gqf3khn5m.execute-api.us-east-1.amazonaws.com/v1'; // URL real da API
   const [metodoPagamento, setMetodoPagamento] = useState('qrcode'); // 'qrcode' ou 'cartao'
   const [cardDetails, setCardDetails] = useState({
     numeroCartao: '',
@@ -16,6 +16,99 @@ function Pagamento() {
     cvc: ''
   });
   const [loading, setLoading] = useState(false);
+   // --- NOVA FUNÇÃO: VERIFICA O ESTOQUE ANTES DE QUALQUER COISA ---
+  const verificarEstoque = async () => {
+    try {
+      // Cria um array de promessas para verificar o estoque de cada item
+      const verificacoes = carrinho.map(async (item) => {
+        const response = await fetch(`${API_BASE_URL}/products/${item.id}`);
+        if (!response.ok) {
+          throw new Error(`Erro ao verificar estoque do produto ${item.nome}`);
+        }
+        const produtoApi = await response.json();
+        
+        // Retorna se o estoque é suficiente
+        return {
+          id: item.id,
+          nome: item.nome,
+          disponivel: produtoApi.estoque >= item.quantidade
+        };
+      });
+
+      const resultados = await Promise.all(verificacoes);
+      
+      const semEstoque = resultados.find(res => !res.disponivel);
+
+      if (semEstoque) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Estoque Insuficiente',
+          text: `O produto "${semEstoque.nome}" não possui estoque suficiente.`,
+        });
+        return false; // Retorna false para indicar falha na verificação
+      }
+
+      return true; // Retorna true se tudo estiver OK
+    } catch (error) {
+      console.error('Erro na verificação de estoque:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro de conexão',
+        text: 'Não foi possível verificar o estoque no momento. Tente novamente.',
+      });
+      return false;
+    }
+  };
+
+
+
+  const atualizarEstoque = async () => {
+    try {
+      // Para cada item no carrinho, envie uma requisição de atualização
+      const updates = carrinho.map(async (item) => {
+        // Obtenha o produto para saber o estoque atual
+        const responseProduto = await fetch(`${API_BASE_URL}/products/${item.id}`);
+        if (!responseProduto.ok) {
+          throw new Error(`Erro ao buscar produto ${item.id}`);
+        }
+        const produtoOriginal = await responseProduto.json();
+        
+        // Calcule o novo estoque
+        const novoEstoque = produtoOriginal.estoque - item.quantidade;
+        if (novoEstoque < 0) {
+           // Lógica para lidar com estoque insuficiente (opcional, mas recomendado)
+           console.error(`Estoque insuficiente para o produto: ${item.nome}`);
+           return; 
+        }
+
+        const payload = { estoque: novoEstoque };
+
+        // Envia a requisição de PUT para atualizar o estoque
+        const response = await fetch(`${API_BASE_URL}/products/${item.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro ao atualizar o estoque do produto ${item.nome}`);
+        }
+        console.log(`Estoque do produto ${item.nome} atualizado para ${novoEstoque}.`);
+      });
+
+      await Promise.all(updates); // Aguarda todas as atualizações terminarem
+      console.log('Todos os estoques foram atualizados com sucesso!');
+
+    } catch (error) {
+      console.error('Erro na atualização de estoque:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro de estoque',
+        text: 'Ocorreu um erro ao atualizar o estoque. Por favor, entre em contato com o suporte.',
+      });
+    }
+  };
+
 
   // Redireciona se não houver dados do carrinho
   useEffect(() => {
@@ -38,6 +131,13 @@ function Pagamento() {
   const handlePagamento = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+     // PASSO 1: VERIFICA O ESTOQUE
+    const estoqueDisponivel = await verificarEstoque();
+    if (!estoqueDisponivel) {
+      setLoading(false);
+      return; // Interrompe a função se não houver estoque
+    }
 
     // --- SIMULAÇÃO DE PAGAMENTO ---
     try {
@@ -70,8 +170,10 @@ function Pagamento() {
           text: 'Seu pagamento com cartão foi realizado com sucesso. Obrigado pela compra!',
         });
       }
-
+       // --- CHAMA A FUNÇÃO DE ATUALIZAÇÃO DO ESTOQUE AQUI ---
+      await atualizarEstoque();
       // Após o sucesso simulado, limpar o carrinho e redirecionar
+      onLimparCarrinho();
       // apenas redireciona para a home
       navigate('/'); 
 

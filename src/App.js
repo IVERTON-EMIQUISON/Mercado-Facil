@@ -104,7 +104,8 @@ function AppContent() {
           <Route path="/produto/:id" element={<DetalhesProduto onAdicionarAoCarrinho={handleAdicionarAoCarrinho} />} />
           <Route path="/carrinho" element={<Carrinho carrinho={carrinho} onRemoverDoCarrinho={handleRemoverDoCarrinho} onLimparCarrinho={handleLimparCarrinho} />} />
           <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-          <Route path="/pagamento" element={<Pagamento/>} />
+          <Route path="/pagamento" element={<Pagamento onLimparCarrinho={handleLimparCarrinho} />} />
+          
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
