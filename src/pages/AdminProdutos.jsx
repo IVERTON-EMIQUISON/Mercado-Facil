@@ -13,6 +13,7 @@ function AdminProdutos() {
   const [editandoProduto, setEditandoProduto] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState('');
   const API_BASE_URL = 'https://4gqf3khn5m.execute-api.us-east-1.amazonaws.com/v1'; //URL real da API
 
@@ -178,6 +179,11 @@ function AdminProdutos() {
       setLoading(false);
     }
   };
+   // NOVO: Função para filtrar produtos com base no termo de busca
+  const filteredProdutos = produtos.filter(produto =>
+    produto.nome.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+    
 
   return (
     <div className="container">
@@ -248,6 +254,19 @@ function AdminProdutos() {
 
       <div className="admin-table">
         <h3>Lista de Produtos</h3>
+          {/* Campo de busca */}
+        <div style={{ marginBottom: '15px' }}>
+          <label htmlFor="search-product" style={{ marginRight: '10px', fontWeight: 'bold' }}>Buscar Produto por Nome:</label>
+          <input 
+            type="text" 
+            id="search-product"
+            placeholder="Digite o nome do produto..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ddd', width: '300px' }}
+          />
+        </div>
+        
         <div className="table-container">
         <table>
           <thead>
@@ -260,8 +279,8 @@ function AdminProdutos() {
             </tr>
           </thead>
           <tbody>
-            {produtos.map(produto => (
-              <tr key={produto.id}>
+            {filteredProdutos.map(produto => (
+                <tr key={produto.id}>
                 <td>{produto.nome}</td>
                 <td className="descricao">
                   {produto.descricao}

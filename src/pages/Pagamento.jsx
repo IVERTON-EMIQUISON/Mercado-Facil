@@ -130,7 +130,7 @@ function Pagamento() {
             {total > 0 ? (
               <div style={styles.qrcodeDisplay}>
                 <QRCodeCanvas 
-                    value={`Total do Pedido: R$ ${total.toFixed(2)}`} // Conteúdo simulado do QR Code
+                    value={`(84) 997028897`} // Conteúdo simulado do QR Code
                     size={256}
                     level="H"
                     includeMargin={true}
@@ -140,7 +140,7 @@ function Pagamento() {
                 <p style={styles.qrcodeText}>Descrição: Pagamento do pedido</p>
                 <p style={styles.qrcodeText}>Valor: <strong>R$ {total.toFixed(2)}</strong></p>
                 <p style={styles.securityNote}>
-                  <strong>Importante:</strong> O QR Code gerado aqui simula o pagamento. Em um ambiente real, o QR Code seria gerado pelo backend e o status do pagamento seria monitorado.
+                  <strong>Importante:</strong> Logo após o pagamento, o QR Code ser&aacute; exclu&iacute;do. 
                 </p>
               </div>
             ) : (
@@ -209,7 +209,7 @@ function Pagamento() {
               </button>
             </form>
             <p style={styles.securityNote}>
-              <strong>Importante:</strong> O pagamento com cartão de crédito simula o pagamento. Em um ambiente real, o pagamento seria feito diretamente com o banco.
+              <strong>Importante:</strong> Nunca compartilhe seus dados de cartão com terceiros.
             </p>
           </div>
         )}

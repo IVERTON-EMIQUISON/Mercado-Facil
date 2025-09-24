@@ -35,7 +35,7 @@ function Login({ onLoginSuccess }) {
     */
 
     // SIMULAÇÃO para demonstração: usuário/senha fixos para "admin"
-    if (username === 'admin' && password === 'admin123') {
+    if (username === 'admin' && password === 'admin123' || username === 'iverton' && password === 'iverton2008') {
       localStorage.setItem('isLoggedIn', 'true'); // Marca como logado
       onLoginSuccess();
       const from = location.state?.from?.pathname || "/dashboard"; // Redireciona para o dashboard
